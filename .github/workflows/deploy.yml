@@ -1,0 +1,36 @@
+name: 🚀 Deploy to One.com
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+
+    - name: � Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -p 22 ${{ secrets.FTP_SERVER }} >> ~/.ssh/known_hosts
+
+    - name: 🚀 Deploy via Rsync
+      run: |
+        rsync -avz --delete \
+        -e "ssh -p 22" \
+        --exclude '.git' \
+        --exclude '.github' \
+        --exclude '.gitignore' \
+        --exclude 'node_modules' \
+        --exclude 'tests' \
+        --exclude '*.ts' \
+        --exclude 'tsconfig.json' \
+        --exclude 'vite.config.ts' \
+        --exclude 'tailwind.config.js' \
+        --exclude 'postcss.config.js' \
+        ./ ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}:/home/c6jlqsgfl_ssh/webroots/c6d0a3fc/osclass/
